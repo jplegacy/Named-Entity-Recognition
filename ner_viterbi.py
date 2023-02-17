@@ -31,8 +31,9 @@ def getfeats(word, o):
     o = str(o)
     features = [
         (o + 'word', word),
-        # TODO: add more features here.
-    ]
+        (o + 'isUpper', word[0].isupper()),
+        (o + 'isAlpha', word.isalpha()),
+        (o + 'isTitle', word.istitle())    ]
     return features
     
 
@@ -58,10 +59,53 @@ def word2features(sent, i):
 #################################
 
 def viterbi(obs, memm, pretty_print=False):
-    # TODO: complete this function. Implement an adapted version of
-    # the viterbi algorithm that decodes based on the memm's
-    # classifier's output.
-    pass
+    V = [{}]
+    path = {}
+
+    # Calculate the Viterbi probabilities for the first step, i.e.,
+    # the first observation: t = 0.
+    for y in memm.states:
+        V[0][y] = logprob(memm.start_probs[y]) + logprob(memm.emit_probs[y][obs[0]])
+        path[y] = [y]
+
+    # Run Viterbi for all of the subsequent steps/observations: t > 0.
+    for t in range(1, len(obs)):
+        V.append({})
+        newpath = {}
+
+        for y in memm.states:
+            max_v = float('-inf')
+            max_prev_state = None
+            for prev_y in memm.states:
+                transition_prob = V[t - 1][prev_y] + logprob(memm.trans_probs[prev_y][y])
+                emission_prob = logprob(memm.emit_probs[y][obs[t]])
+                v = transition_prob + emission_prob
+                if v > max_v:
+                    max_v = v
+                    max_prev_state = prev_y
+            V[t][y] = max_v
+            newpath[y] = path[max_prev_state] + [y]
+
+        # Don't need to remember the old paths
+        path = newpath
+
+    # if pretty_print:
+    #     pretty_print_trellis(V)
+    (prob, state) = max([(V[len(obs) - 1][y], y) for y in memm.states])
+    return path[state]
+
+
+def logprob(p):
+    """Returns the logarithm of p."""
+    if p != 0:
+        return math.log(p)
+    else:
+        return float('-inf')
+
+
+def rawprob(logprob):
+    return pow(math.e, logprob)
+
 
 
 if __name__ == "__main__":
@@ -77,6 +121,8 @@ if __name__ == "__main__":
     for sent in train_sents:
         for i in range(len(sent)):
             feats = dict(word2features(sent,i))
+            feats += dict(word2features(sent, i-1))
+
             # TODO: training needs to take into account the label of
             # the previous word. And <S> if i is the first words in a
             # sentence.

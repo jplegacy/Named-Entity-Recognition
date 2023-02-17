@@ -20,10 +20,18 @@ def getfeats(word, o):
     o = str(o)
     features = [
         (o + 'word', word),
-        # TODO: add more features here.
+        (o + 'isUpper', word[0].isupper()),
+        (o + 'isAlpha', word.isalpha()),
+        (o + 'isTitle', word.istitle())
     ]
     return features
-    
+
+
+def find_unicode(word):
+    total = 0
+    for char in word:
+        total+= ord(char)
+    return total
 
 def word2features(sent, i):
     """Generate all features for the word at position i in the
