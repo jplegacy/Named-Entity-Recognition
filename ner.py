@@ -1,6 +1,6 @@
 """Named Entity Recognition as a classification task.
 
-Author: Kristina Striegnitz and <YOUR NAME HERE>
+Author: Kristina Striegnitz and Jeremy Perez
 
 <HONOR CODE STATEMENT HERE>
 

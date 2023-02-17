@@ -20021,7 +20021,7 @@ un	O	O
 debate	O	O
 sobre	O	O
 "	B-MISC	O
-La	I-MISC	O
+La	I-MISC	B-ORG
 Reforma	I-MISC	I-ORG
 de	I-MISC	I-ORG
 la	I-MISC	O
@@ -24068,7 +24068,7 @@ daños	O	O
 informó	O	O
 en	O	O
 Bogotá	B-LOC	B-LOC
-la	O	I-PER
+la	O	O
 Red	B-ORG	B-ORG
 Sismológica	I-ORG	I-ORG
 Nacional	I-ORG	I-ORG
@@ -36488,7 +36488,7 @@ José	B-PER	B-PER
 José	I-PER	I-PER
 ,	O	O
 a	O	O
-Los	B-MISC	B-PER
+Los	B-MISC	B-LOC
 Panchos	I-MISC	I-LOC
 y	O	O
 a	O	O
@@ -44137,7 +44137,7 @@ en	O	O
 el	O	O
 equipo	O	O
 de	O	O
-Geles	B-MISC	I-ORG
+Geles	B-MISC	B-LOC
 )	O	O
 Sevilla	B-LOC	B-LOC
 ,	O	O
@@ -44852,7 +44852,7 @@ en	O	O
 el	O	O
 equipo	O	O
 de	O	O
-Geles	B-MISC	I-ORG
+Geles	B-MISC	B-LOC
 )	O	O
 Nueva	B-LOC	B-LOC
 York	I-LOC	I-LOC
@@ -52717,7 +52717,7 @@ mentiras	O	O
 del	O	O
 gobierno	O	O
 de	O	O
-Clinton	B-PER	B-PER
+Clinton	B-PER	B-LOC
 y	O	O
 luego	O	O
 hacen	O	O
