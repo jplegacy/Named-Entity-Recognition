@@ -22,7 +22,7 @@ def viterbi(obs, hmm, pretty_print=False):
     likely path that leads to that state. 'path' is a dictionary with
     one entry for each possible state. And each value is a list of
     states, representing the most likely sequence of states leading to
-    the state represented by the key.
+    the state represented by the key.+-
     """
     V = [{}]
     path = {}
@@ -32,7 +32,8 @@ def viterbi(obs, hmm, pretty_print=False):
     for y in hmm.states:
         V[0][y] = logprob(hmm.start_probs[y]) + logprob(hmm.emit_probs[y][obs[0]])
         path[y] = [y]
- 
+
+
     # Run Viterbi for all of the subsequent steps/observations: t > 0.
     for t in range(1,len(obs)):
         V.append({})

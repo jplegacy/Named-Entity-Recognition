@@ -58,11 +58,36 @@ def word2features(sent, i):
 #
 #################################
 
-
-
 def viterbi(obs, memm, pretty_print=False):
-    pass
+    # OBS FEATURES OF WORDS IN SENTENCE
 
+    V = [{}]
+    path = {}
+
+    for y in memm.states:
+        V[0][y] = memm.classifier.predict_proba(obs[0])
+        path[y] = [y]
+
+    for t in range(1,len(obs)):
+        V.append({})
+        newpath = {}
+
+        for y in memm.states:
+            max_v = float('-inf')
+            max_prev_state = None
+            for prev_y in memm.states:
+                v = V[t - 1][prev_y] + memm.classifier.predict_proba(obs[t])
+                if v > max_v:
+                    max_v = v
+                    max_prev_state = prev_y
+            V[t][y] = max_v
+            newpath[y] = path[max_prev_state] + [y]
+
+        # Don't need to remember the old paths
+        path = newpath
+
+    (prob, state) = max([(V[len(obs) - 1][y], y) for y in memm.states])
+    return path[state]
 
 if __name__ == "__main__":
     print("\nLoading the data ...")
@@ -78,15 +103,12 @@ if __name__ == "__main__":
 
     # The vectorizer turns our features into vectors of numbers.
     vectorizer = DictVectorizer()
-    classifier = LogisticRegression(max_iter=400)
+    classifier = LogisticRegression(max_iter=10)
 
-    MeMM = MEMM(LABELS, [], vectorizer, classifier)
+    memm = MEMM(LABELS, vectorizer, classifier)
 
     for sent in train_sents:
         for i in range(len(sent)):
-            for word_info in sent:
-                MeMM.encode(word_info[0])
-
             feats = dict(word2features(sent, i))
 
             if i == 0:
@@ -97,29 +119,24 @@ if __name__ == "__main__":
             train_feats.append(feats)
             train_labels.append(sent[i][-1])
 
-
-    X_train = MEMM.vectorizer.fit_transform(train_feats)
+    X_train = memm.vectorizer.fit_transform(train_feats)
     # Not normalizing or scaling because the example feature is
     # binary, i.e. values are either 0 or 1.
 
-    MeMM.classifier.fit(X_train, train_labels)
+    memm.classifier.fit(X_train, train_labels)
 
     print("\nTesting ...")
     # While developing use the dev_sents. In the very end, switch to
-    # test_sents and run it one last time to produce the output file
+    # test_sents and run it one last ti me to produce the output file
     # results_memm.txt. That is the results_memm.txt you should hand
     # in.
     y_pred = []
     for sent in dev_sents:
-
-        # sent_predi = model.predict(sent)
-
-
-
-        # TODO: extract the feature representations for the words from
-        # the sentence; use the viterbi algorithm to predict labels
-        # for this sequence of words; add the result to y_pred
-        pass
+        sent_feats = []
+        for i in range(len(sent)):
+            feats = dict(word2features(sent, i))
+            sent_feats.append(feats)
+        y_pred.append(viterbi(sent_feats, memm))
 
     print("Writing to results_memm.txt")
     # format is: word gold pred
