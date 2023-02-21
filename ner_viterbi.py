@@ -108,24 +108,20 @@ if __name__ == "__main__":
     memm = MEMM(LABELS, vectorizer, classifier)
 
     for sent in train_sents:
+        sent_feats = []
         for i in range(len(sent)):
             feats = dict(word2features(sent, i))
-
-            if i == 0:
-                feats["0previousLabel"] = "<S>"
-            else:
-                feats["0previousLabel"] = train_labels[-1] # Grabs the last label made
-
-            train_feats.append(feats)
-            train_labels.append(sent[i][-1])
-
+            sent_feats.append(feats)
+            \
+        sent_feats.append(viterbi(sent_feats, memm))
     X_train = memm.vectorizer.fit_transform(train_feats)
     # Not normalizing or scaling because the example feature is
     # binary, i.e. values are either 0 or 1.
 
+    print(len(train_labels), len(X_train))
     memm.classifier.fit(X_train, train_labels)
 
-    print("\nTesting ...")
+    print("\nTesting .z..")
     # While developing use the dev_sents. In the very end, switch to
     # test_sents and run it one last ti me to produce the output file
     # results_memm.txt. That is the results_memm.txt you should hand

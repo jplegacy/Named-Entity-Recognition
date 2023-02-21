@@ -13,11 +13,3 @@ class MEMM:
         feat_dict["0previousLabel"] = previous_label
         feature_vec = self.vectorizer.fit_transform(feat_dict)
         return self.classifier.predict_proba(feature_vec)
-
-
-
-    # TODO: Add additional methods that are needed. In particular, you
-    # will need a method that can take a dictionary of features
-    # representing a word and the tag chosen for the previous word and
-    # return the probabilities of each of the MEMM's states.
-
