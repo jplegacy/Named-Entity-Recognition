@@ -57,26 +57,25 @@ def word2features(sent, i):
 # Viterbi decoding
 #
 #################################
-
 def viterbi(obs, memm, pretty_print=False):
-    # OBS FEATURES OF WORDS IN SENTENCE
+    # OBS - A list of dictionaries in a sentence
 
     V = [{}]
     path = {}
 
-    for y in memm.states:
-        V[0][y] = memm.classifier.predict_proba(obs[0])
+    for y in memm.states():
+        V[0][y] = memm.state_probability(obs[0], "<s>")
         path[y] = [y]
 
-    for t in range(1,len(obs)):
+    for t in range(1, len(obs)):
         V.append({})
         newpath = {}
 
-        for y in memm.states:
+        for y in memm.states():
             max_v = float('-inf')
             max_prev_state = None
-            for prev_y in memm.states:
-                v = V[t - 1][prev_y] + memm.classifier.predict_proba(obs[t])
+            for prev_y in memm.states():
+                v = V[t - 1][prev_y] * memm.classifier.predict_log_proba(obs[t])
                 if v > max_v:
                     max_v = v
                     max_prev_state = prev_y
@@ -95,33 +94,35 @@ if __name__ == "__main__":
     dev_sents = list(conll2002.iob_sents('esp.testa'))
     test_sents = list(conll2002.iob_sents('esp.testb'))
 
-    LABELS = ['B-LOC' 'B-MISC' 'B-ORG' 'B-PER' 'I-LOC' 'I-MISC' 'I-ORG' 'I-PER' 'O']
-
     print("\nTraining ...")
     train_feats = []
     train_labels = []
 
     # The vectorizer turns our features into vectors of numbers.
     vectorizer = DictVectorizer()
-    classifier = LogisticRegression(max_iter=10)
+    classifier = LogisticRegression(max_iter=400)
 
-    memm = MEMM(LABELS, vectorizer, classifier)
-
+    memm = MEMM(vectorizer, classifier)
     for sent in train_sents:
-        sent_feats = []
         for i in range(len(sent)):
-            feats = dict(word2features(sent, i))
-            sent_feats.append(feats)
-            \
-        sent_feats.append(viterbi(sent_feats, memm))
+            word_feat = dict(word2features(sent, i))
+            if i == 0:
+                word_feat["0previousWord"] = "<S>"
+            else:
+                word_feat["0previousWord"] = sent[i-1][0]
+
+            print(word_feat)
+            train_feats.append(word_feat)
+            train_labels.append(sent[i][-1])
+
     X_train = memm.vectorizer.fit_transform(train_feats)
+
     # Not normalizing or scaling because the example feature is
     # binary, i.e. values are either 0 or 1.
 
-    print(len(train_labels), len(X_train))
     memm.classifier.fit(X_train, train_labels)
 
-    print("\nTesting .z..")
+    print("\nTesting ...")
     # While developing use the dev_sents. In the very end, switch to
     # test_sents and run it one last ti me to produce the output file
     # results_memm.txt. That is the results_memm.txt you should hand
