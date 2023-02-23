@@ -65,20 +65,24 @@ def viterbi(obs, memm, pretty_print=False):
 
     initial_state_probabilities = memm.state_probabilities(obs[0], "<s>")
 
-    for y in memm.states:
-        V[0][y] = memm.get_state_probability(initial_state_probabilities, y)
+    for index, y in enumerate(memm.states):
+        V[0][y] = initial_state_probabilities[0][index]
         path[y] = [y]
 
     for t in range(1, len(obs)):
         V.append({})
         newpath = {}
 
-        for y in memm.states :
+        for y in memm.states:
             max_v = float('-inf')
             max_prev_state = None
 
-            for prev_y in memm.states:
-                v = V[t - 1][prev_y] + memm.get_state_probability(initial_state_probabilities, prev_y)
+            for index, prev_y in enumerate(memm.states):
+
+                previous_label = path[y][t-1]
+                state_probabilities = memm.state_probabilities(obs[t], previous_label)
+
+                v = V[t - 1][prev_y] + state_probabilities[0][index]
 
                 if v > max_v:
                     max_v = v
@@ -90,6 +94,7 @@ def viterbi(obs, memm, pretty_print=False):
         path = newpath
 
     (prob, state) = max([(V[len(obs) - 1][y], y) for y in memm.states])
+
     return path[state]
 
 if __name__ == "__main__":
@@ -119,7 +124,7 @@ if __name__ == "__main__":
 
     # Not normalizing or scaling because the example feature is
     # binary, i.e. values are either 0 or 1.
-    classifier = LogisticRegression(max_iter=400)
+    classifier = LogisticRegression(max_iter=600)
     classifier.fit(X_train, train_labels)
 
     memm = MEMM(classifier.classes_, vectorizer, classifier)
@@ -130,22 +135,27 @@ if __name__ == "__main__":
     # results_memm.txt. That is the results_memm.txt you should hand
     # in.
     y_pred = []
-    for sent in dev_sents:
+    t = 0
+    for sent in dev_sents[:20]:
         sent_feats = []
         for i in range(len(sent)):
             feats = dict(word2features(sent, i))
             sent_feats.append(feats)
-        y_pred.append(viterbi(sent_feats, memm))
+        y_pred.extend(viterbi(sent_feats, memm))
+        print(t+1 , "out of ", len(dev_sents))
+        t += 1
 
+    print(len(y_pred))
     print("Writing to results_memm.txt")
     # format is: word gold pred
     j = 0
     with open("results_memm.txt", "w") as out:
-        for sent in dev_sents:
+        for sent in dev_sents[:20]:
             for i in range(len(sent)):
+
                 word = sent[i][0]
                 gold = sent[i][-1]
-                pred = y_pred[j][i]
+                pred = y_pred[j]
                 j += 1
                 out.write("{}\t{}\t{}\n".format(word,gold,pred))
         out.write("\n")
