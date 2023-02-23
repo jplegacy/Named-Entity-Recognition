@@ -73,11 +73,11 @@ def viterbi(obs, memm, pretty_print=False):
         V.append({})
         newpath = {}
 
-        for y in memm.states:
+        for index,y in enumerate(memm.states):
             max_v = float('-inf')
             max_prev_state = None
 
-            for index, prev_y in enumerate(memm.states):
+            for prev_y in memm.states:
 
                 previous_label = path[y][t-1]
                 state_probabilities = memm.state_probabilities(obs[t], previous_label)
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     # in.
     y_pred = []
     t = 0
-    for sent in dev_sents[:20]:
+    for sent in test_sents[:10]:
         sent_feats = []
         for i in range(len(sent)):
             feats = dict(word2features(sent, i))
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     # format is: word gold pred
     j = 0
     with open("results_memm.txt", "w") as out:
-        for sent in dev_sents[:20]:
+        for sent in test_sents[:10]:
             for i in range(len(sent)):
 
                 word = sent[i][0]
