@@ -63,19 +63,23 @@ def viterbi(obs, memm, pretty_print=False):
     V = [{}]
     path = {}
 
-    for y in memm.states():
-        V[0][y] = memm.state_probability(obs[0], "<s>")
+    initial_state_probabilities = memm.state_probabilities(obs[0], "<s>")
+
+    for y in memm.states:
+        V[0][y] = memm.get_state_probability(initial_state_probabilities, y)
         path[y] = [y]
 
     for t in range(1, len(obs)):
         V.append({})
         newpath = {}
 
-        for y in memm.states():
+        for y in memm.states :
             max_v = float('-inf')
             max_prev_state = None
-            for prev_y in memm.states():
-                v = V[t - 1][prev_y] * memm.classifier.predict_log_proba(obs[t])
+
+            for prev_y in memm.states:
+                v = V[t - 1][prev_y] + memm.get_state_probability(initial_state_probabilities, prev_y)
+
                 if v > max_v:
                     max_v = v
                     max_prev_state = prev_y
@@ -98,29 +102,27 @@ if __name__ == "__main__":
     train_feats = []
     train_labels = []
 
-    # The vectorizer turns our features into vectors of numbers.
-    vectorizer = DictVectorizer()
-    classifier = LogisticRegression(max_iter=400)
-
-    memm = MEMM(vectorizer, classifier)
     for sent in train_sents:
         for i in range(len(sent)):
             word_feat = dict(word2features(sent, i))
             if i == 0:
-                word_feat["0previousWord"] = "<S>"
+                word_feat["previousLabel"] = "<S>"
             else:
-                word_feat["0previousWord"] = sent[i-1][0]
+                word_feat["previousLabel"] = sent[i-1][-1]
 
-            print(word_feat)
             train_feats.append(word_feat)
             train_labels.append(sent[i][-1])
 
-    X_train = memm.vectorizer.fit_transform(train_feats)
+    vectorizer = DictVectorizer()
+    # The vectorizer turns our features into vectors of numbers.
+    X_train = vectorizer.fit_transform(train_feats)
 
     # Not normalizing or scaling because the example feature is
     # binary, i.e. values are either 0 or 1.
+    classifier = LogisticRegression(max_iter=400)
+    classifier.fit(X_train, train_labels)
 
-    memm.classifier.fit(X_train, train_labels)
+    memm = MEMM(classifier.classes_, vectorizer, classifier)
 
     print("\nTesting ...")
     # While developing use the dev_sents. In the very end, switch to
@@ -139,11 +141,11 @@ if __name__ == "__main__":
     # format is: word gold pred
     j = 0
     with open("results_memm.txt", "w") as out:
-        for sent in dev_sents: 
+        for sent in dev_sents:
             for i in range(len(sent)):
                 word = sent[i][0]
                 gold = sent[i][-1]
-                pred = y_pred[j]
+                pred = y_pred[j][i]
                 j += 1
                 out.write("{}\t{}\t{}\n".format(word,gold,pred))
         out.write("\n")
