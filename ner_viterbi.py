@@ -1,8 +1,9 @@
 """Named Entity Recognition as a sequence tagging task.
 
-Author: Kristina Striegnitz and <YOUR NAME HERE>
+Author: Kristina Striegnitz and Jeremy Perez
 
-<HONOR CODE STATEMENT HERE>
+I affirm that I have carried out my academic endeavors with full
+academic honesty. Jeremy Perez
 
 Complete this file for part 2 of the project.
 """
@@ -14,6 +15,7 @@ from sklearn.metrics import precision_recall_fscore_support
 
 import math
 import numpy as np
+import re
 from memm import MEMM
 
 #################################
@@ -32,8 +34,19 @@ def getfeats(word, o):
         (o + 'word', word),
         (o + 'isUpper', word[0].isupper()),
         (o + 'isAlpha', word.isalpha()),
-        (o + 'isTitle', word.istitle())
+        (o + 'isTitle', word.istitle()),
+        (o + 'isAlnum', word.isalnum()),
+        (o + 'isAscii', word.isascii()),
+        (o + 'isOf', word.lower() == "de"),
+        (o + 'isIdentifier', word.isidentifier()),
+        (o + 'numOfAccents', len(re.findall('(?i)(?:(?![×Þß÷þø])[a-zÀ-ÿ])', word)))
     ]
+    if o == "-1":
+        features.append((o + 'isArticle', word.lower() == "el" or word.lower == "la"))
+        features.append((o + 'isIndefinite', word.lower() == "un" or word.lower == "la"))
+    if o == "1":
+        features.append((o + 'isTobe', word.lower() == "eres" or word.lower == "es" or word.lower() == "son"))
+
     return features
     
 
@@ -73,7 +86,7 @@ def viterbi(obs, memm, pretty_print=False):
         V.append({})
         newpath = {}
 
-        for index,y in enumerate(memm.states):
+        for index, y in enumerate(memm.states):
             max_v = float('-inf')
             max_prev_state = None
 
@@ -124,7 +137,7 @@ if __name__ == "__main__":
 
     # Not normalizing or scaling because the example feature is
     # binary, i.e. values are either 0 or 1.
-    classifier = LogisticRegression(max_iter=600)
+    classifier = LogisticRegression(max_iter=800)
     classifier.fit(X_train, train_labels)
 
     memm = MEMM(classifier.classes_, vectorizer, classifier)
@@ -136,7 +149,7 @@ if __name__ == "__main__":
     # in.
     y_pred = []
     t = 0
-    for sent in test_sents[:10]:
+    for sent in test_sents[:50]:
         sent_feats = []
         for i in range(len(sent)):
             feats = dict(word2features(sent, i))
@@ -150,7 +163,7 @@ if __name__ == "__main__":
     # format is: word gold pred
     j = 0
     with open("results_memm.txt", "w") as out:
-        for sent in test_sents[:10]:
+        for sent in test_sents[:50]:
             for i in range(len(sent)):
 
                 word = sent[i][0]

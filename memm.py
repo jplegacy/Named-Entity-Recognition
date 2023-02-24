@@ -14,9 +14,3 @@ class MEMM:
         feature_vec = self.vectorizer.transform(window_dict)
         return self.classifier.predict_log_proba(feature_vec)
 
-    # def get_state_probability(self, list_of_prob, wanted_state):
-    #     desired_index = 0
-    #     for i, state in enumerate(self.states):
-    #         if wanted_state == state:
-    #             desired_index = i
-    #     return list_of_prob[0][desired_index]

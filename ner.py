@@ -12,6 +12,8 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_recall_fscore_support
 
+import re
+
 def getfeats(word, o):
     """Take a word and its offset with respect to the word we are trying
     to classify. Return a list of tuples of the form (feature_name,
@@ -22,8 +24,20 @@ def getfeats(word, o):
         (o + 'word', word),
         (o + 'isUpper', word[0].isupper()),
         (o + 'isAlpha', word.isalpha()),
-        (o + 'isTitle', word.istitle())
+        (o + 'isTitle', word.istitle()),
+        (o + 'isAlnum', word.isalnum()),
+        (o + 'isAscii', word.isascii()),
+        (o + 'isOf', word.lower() == "de"),
+        (o + 'isIdentifier', word.isidentifier()),
+        (o + 'numOfAccents',  len(re.findall('(?i)(?:(?![×Þß÷þø])[a-zÀ-ÿ])', word))),
+        (o + 'containsApostrophe', word.find('\''))
     ]
+    if o == "-1":
+        features.append((o + 'isArticle', word.lower() == "el" or word.lower == "la"))
+        features.append((o + 'isIndefinite', word.lower() == "un" or word.lower == "la"))
+    if o == "1":
+        features.append((o + 'isTobe', word.lower() == "eres" or word.lower == "es" or word.lower() == "son"))
+
     return features
 
 
@@ -69,7 +83,7 @@ if __name__ == "__main__":
     # Not normalizing or scaling because the example feature is
     # binary, i.e. values are either 0 or 1.
     
-    model = LogisticRegression(max_iter=400)
+    model = LogisticRegression(max_iter=800)
     model.fit(X_train, train_labels)
 
     print("\nTesting ...")
